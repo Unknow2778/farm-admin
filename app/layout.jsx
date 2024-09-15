@@ -3,6 +3,7 @@ import './globals.css';
 import { ThemeProvider } from 'next-themes';
 import { StoreProvider } from './context/store';
 import { Toaster } from '@/components/ui/toaster';
+import ClientSideAuth from './components/ClientSideAuth';
 
 export const metadata = {
   title: 'Farm Admin',
@@ -14,13 +15,8 @@ export default function RootLayout({ children }) {
     <html lang='en' suppressHydrationWarning>
       <body>
         <ThemeProvider attribute='class' defaultTheme='system' enableSystem>
-          <StoreProvider>
-            <div className='min-h-screen flex flex-col container mx-auto'>
-              <Header />
-              <main className='flex-grow'>{children}</main>
-            </div>
-            <Toaster />
-          </StoreProvider>
+          <ClientSideAuth>{children}</ClientSideAuth>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

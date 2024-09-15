@@ -4,7 +4,6 @@ const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export async function GET(url) {
   try {
-    console.log('Making GET request to:', `${baseUrl}${url}`);
     const res = await axios.get(`${baseUrl}${url}`);
     return res;
   } catch (error) {

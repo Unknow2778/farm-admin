@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { formatDate } from '../helperfun/formatDate';
 
 const OverviewPage = () => {
   const [market, setMarket] = useState([]);
@@ -27,18 +28,6 @@ const OverviewPage = () => {
     };
     fetchData();
   }, []);
-
-  const formatDate = (date) => {
-    const formattedDate = new Date(date).toLocaleString('en-US', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-    return formattedDate;
-  };
 
   console.log(market);
 
