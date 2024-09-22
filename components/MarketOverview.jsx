@@ -1,10 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useRouter } from 'next/navigation';
-import OverviewSkeleton from './OverviewSkeleton';
-import { Button } from '@/components/ui/button';
-import { Plus, Trash2 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+'use client';
+
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -14,11 +16,12 @@ import {
   DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
-import axios from 'axios';
-import { useToast } from '@/hooks/use-toast';
+import { Plus, Trash2, MapPin, Calendar } from 'lucide-react';
+import OverviewSkeleton from './OverviewSkeleton';
 
 export default function Overview({ markets, loading, fetchData }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [newMarketName, setNewMarketName] = useState('');
   const [newMarketLocation, setNewMarketLocation] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -27,7 +30,6 @@ export default function Overview({ markets, loading, fetchData }) {
   const [deleteMarketName, setDeleteMarketName] = useState('');
   const [deleteMarketLocation, setDeleteMarketLocation] = useState('');
   const [confirmDeleteLocation, setConfirmDeleteLocation] = useState('');
-  const { toast } = useToast();
 
   const handleAddMarket = async () => {
     try {
@@ -39,7 +41,7 @@ export default function Overview({ markets, loading, fetchData }) {
         }
       );
 
-      if (res.status == 201) {
+      if (res.status === 201) {
         toast({
           title: 'Market added successfully!',
           description: 'Your market has been added to the list.',
@@ -48,18 +50,16 @@ export default function Overview({ markets, loading, fetchData }) {
         setNewMarketLocation('');
         setIsAddOpen(false);
         fetchData();
-        // Optionally, you can refresh the markets list here
-        // For example: refetchMarkets();
       } else {
-        toast({
-          title: 'Failed to add market.',
-          description: 'Please try again.',
-        });
+        throw new Error('Failed to add market');
       }
     } catch (error) {
       toast({
-        title: `Error: ${error.response?.data?.error || 'Unknown error'}`,
-        description: `Please try again.`,
+        title: 'Error',
+        description:
+          error.response?.data?.error ||
+          'Failed to add market. Please try again.',
+        variant: 'destructive',
       });
     }
   };
@@ -78,7 +78,6 @@ export default function Overview({ markets, loading, fetchData }) {
       const res = await axios.delete(
         `${process.env.NEXT_PUBLIC_API_URL}/markets/deleteMarket/${deleteMarketId}`
       );
-      console.log(res);
       if (res.status === 200) {
         toast({
           title: 'Market deleted successfully!',
@@ -87,15 +86,15 @@ export default function Overview({ markets, loading, fetchData }) {
         setIsDeleteOpen(false);
         fetchData();
       } else {
-        toast({
-          title: 'Failed to delete market.',
-          description: 'Please try again.',
-        });
+        throw new Error('Failed to delete market');
       }
     } catch (error) {
       toast({
-        title: `Error: ${error.response?.data?.error || 'Unknown error'}`,
-        description: `Please try again.`,
+        title: 'Error',
+        description:
+          error.response?.data?.error ||
+          'Failed to delete market. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setDeleteMarketId(null);
@@ -110,9 +109,9 @@ export default function Overview({ markets, loading, fetchData }) {
   }
 
   return (
-    <div className='container p-4'>
-      <div className='flex justify-between items-center mb-6'>
-        <h1 className='text-2xl font-bold text-purple-500'>RMC Locations</h1>
+    <div className='container mx-auto p-4 space-y-6'>
+      <div className='flex justify-between items-center'>
+        <h1 className='text-3xl font-bold text-primary'>RMC Locations</h1>
         <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -122,6 +121,9 @@ export default function Overview({ markets, loading, fetchData }) {
           <DialogContent className='sm:max-w-[425px]'>
             <DialogHeader>
               <DialogTitle>Add New Market</DialogTitle>
+              <DialogDescription>
+                Enter the details of the new market location.
+              </DialogDescription>
             </DialogHeader>
             <div className='grid gap-4 py-4'>
               <div className='grid gap-2'>
@@ -147,15 +149,15 @@ export default function Overview({ markets, loading, fetchData }) {
           </DialogContent>
         </Dialog>
       </div>
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
         {markets?.map((rmc) => (
           <Card
             key={rmc._id}
-            className='w-full hover:shadow-lg transition-shadow'
+            className='w-full hover:shadow-lg transition-shadow duration-300 ease-in-out'
           >
             <CardHeader className='flex flex-row justify-between items-center'>
-              <CardTitle className='text-lg'>
-                {rmc.name} - {rmc.place}
+              <CardTitle className='text-xl font-semibold'>
+                {rmc.name}
               </CardTitle>
               <Dialog
                 open={isDeleteOpen}
@@ -177,7 +179,7 @@ export default function Overview({ markets, loading, fetchData }) {
                       setDeleteMarketLocation(rmc.place);
                     }}
                   >
-                    <Trash2 className='h-4 w-4' />
+                    <Trash2 className='h-4 w-4 text-destructive' />
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -214,15 +216,19 @@ export default function Overview({ markets, loading, fetchData }) {
             </CardHeader>
             <CardContent
               onClick={() => router.push(`/market/${rmc._id}`)}
-              className='cursor-pointer'
+              className='cursor-pointer space-y-2'
             >
+              <div className='flex items-center text-muted-foreground'>
+                <MapPin className='mr-2 h-4 w-4' />
+                <p className='text-sm'>{rmc.place}</p>
+              </div>
+              <div className='flex items-center text-muted-foreground'>
+                <Calendar className='mr-2 h-4 w-4' />
+                <p className='text-sm'>
+                  Created: {new Date(rmc.createdAt).toLocaleDateString()}
+                </p>
+              </div>
               <p className='text-sm text-muted-foreground'>ID: {rmc._id}</p>
-              <p className='text-sm text-muted-foreground'>
-                Created: {new Date(rmc.createdAt).toLocaleDateString()}
-              </p>
-              <p className='text-sm text-muted-foreground'>
-                Updated: {new Date(rmc.updatedAt).toLocaleDateString()}
-              </p>
             </CardContent>
           </Card>
         ))}

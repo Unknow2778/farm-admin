@@ -66,13 +66,6 @@ function ProductsPrice({ product, onBack }) {
             price: price,
           }
         );
-      } else {
-        // Add new price
-        res = await POST(`/markets/addProductPrice`, {
-          productId: product._id,
-          marketId: slug[0],
-          price: price,
-        });
       }
 
       if (res.status === 200 || res.status === 201) {
