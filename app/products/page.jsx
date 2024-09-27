@@ -115,6 +115,8 @@ export default function Products() {
           formData.append('image', newProduct.imageFile);
         }
 
+        console.log(formData);
+
         const res = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL}/markets/addProduct`,
           formData,
@@ -171,16 +173,27 @@ export default function Products() {
       }
 
       try {
-        const productToUpdate = {
-          ...updatedProduct,
-          categoryId: Array.isArray(updatedProduct.categoryId)
-            ? updatedProduct.categoryId
-            : [updatedProduct.categoryId],
-        };
+        const formData = new FormData();
+        formData.append('name', updatedProduct.name);
+        formData.append('categoryId', updatedProduct.categoryId);
+        formData.append('baseUnit', updatedProduct.baseUnit);
+        formData.append('isInDemand', updatedProduct.isInDemand);
+        formData.append('priority', updatedProduct.priority);
+
+        console.log(updatedProduct);
+        // Add this check for the image file
+        if (updatedProduct.imageFile) {
+          formData.append('image', updatedProduct.imageFile);
+        }
 
         const res = await axios.put(
           `${process.env.NEXT_PUBLIC_API_URL}/markets/updateProduct/${updatedProduct._id}`,
-          productToUpdate
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
         );
 
         if (res.status === 200) {
@@ -679,6 +692,20 @@ const ProductCard = React.memo(function ProductCard({
                       setLocalUpdateProduct({
                         ...localUpdateProduct,
                         priority: parseInt(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div className='grid gap-2'>
+                  <Label htmlFor='updateImage'>Product Image</Label>
+                  <Input
+                    id='updateImage'
+                    type='file'
+                    accept='image/*'
+                    onChange={(e) =>
+                      setLocalUpdateProduct({
+                        ...localUpdateProduct,
+                        imageFile: e.target.files[0],
                       })
                     }
                   />

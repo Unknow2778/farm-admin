@@ -17,6 +17,7 @@ import {
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react'; // Add this import
 
 export default function Products({ onProductClick }) {
   const { slug } = useParams();
@@ -24,6 +25,7 @@ export default function Products({ onProductClick }) {
   const [date, setDate] = useState(new Date());
   const [productPriceObjArray, setProductPriceObjArray] = useState([]);
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false); // Add this line
 
   useEffect(() => {
     fetchProducts();
@@ -43,6 +45,8 @@ export default function Products({ onProductClick }) {
   };
 
   const addProductsPrice = async () => {
+    if (isLoading) return; // Prevent multiple calls if already loading
+    setIsLoading(true); // Set loading state to true
     try {
       const res = await POST(`/markets/addProductPrice`, {
         date: date,
@@ -64,6 +68,8 @@ export default function Products({ onProductClick }) {
         description: error.message || 'Failed to add product prices',
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false); // Set loading state back to false
     }
   };
 
@@ -154,8 +160,19 @@ export default function Products({ onProductClick }) {
         ))}
       </div>
       <div className='flex justify-center'>
-        <Button onClick={addProductsPrice} className='w-full max-w-md'>
-          Add Product Prices
+        <Button
+          onClick={addProductsPrice}
+          className='w-full max-w-md'
+          disabled={isLoading} // Disable button when loading
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+              Adding Prices...
+            </>
+          ) : (
+            'Add Product Prices'
+          )}
         </Button>
       </div>
     </div>
