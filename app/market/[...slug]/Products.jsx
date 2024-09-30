@@ -18,6 +18,15 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react'; // Add this import
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 
 export default function Products({ onProductClick }) {
   const { slug } = useParams();
@@ -26,6 +35,7 @@ export default function Products({ onProductClick }) {
   const [productPriceObjArray, setProductPriceObjArray] = useState([]);
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false); // Add this line
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -44,9 +54,14 @@ export default function Products({ onProductClick }) {
     }
   };
 
-  const addProductsPrice = async () => {
-    if (isLoading) return; // Prevent multiple calls if already loading
-    setIsLoading(true); // Set loading state to true
+  const handleAddProductsPrice = () => {
+    setShowConfirmDialog(true);
+  };
+
+  const confirmAddProductsPrice = async () => {
+    setShowConfirmDialog(false);
+    if (isLoading) return;
+    setIsLoading(true);
     try {
       const res = await POST(`/markets/addProductPrice`, {
         date: date,
@@ -69,7 +84,7 @@ export default function Products({ onProductClick }) {
         variant: 'destructive',
       });
     } finally {
-      setIsLoading(false); // Set loading state back to false
+      setIsLoading(false);
     }
   };
 
@@ -160,20 +175,42 @@ export default function Products({ onProductClick }) {
         ))}
       </div>
       <div className='flex justify-center'>
-        <Button
-          onClick={addProductsPrice}
-          className='w-full max-w-md'
-          disabled={isLoading} // Disable button when loading
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-              Adding Prices...
-            </>
-          ) : (
-            'Add Product Prices'
-          )}
-        </Button>
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogTrigger asChild>
+            <Button
+              onClick={handleAddProductsPrice}
+              className='w-full max-w-md'
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                  Adding Prices...
+                </>
+              ) : (
+                'Add Product Prices'
+              )}
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Price Update</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to add these product prices? This action
+                cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant='outline'
+                onClick={() => setShowConfirmDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={confirmAddProductsPrice}>Confirm</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
