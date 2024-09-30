@@ -55,9 +55,7 @@ const OverviewPage = () => {
                   <TableRow key={product.id}>
                     <TableCell>{product.product.name}</TableCell>
                     <TableCell>{product.product.baseUnit}</TableCell>
-                    <TableCell>
-                      {formatDate(product.product.createdAt)}
-                    </TableCell>
+                    <TableCell>{formatDate(product.date)}</TableCell>
                     <TableCell>₹{product.currentPrice}</TableCell>
                   </TableRow>
                 ))}
