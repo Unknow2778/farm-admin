@@ -206,7 +206,7 @@ function ProductsPrice({ product, onBack }) {
           <TableBody>
             {priceHistory.map((price) => (
               <TableRow key={price._id}>
-                <TableCell>{formatDate(price.createdAt)}</TableCell>
+                <TableCell>{formatDate(price.date)}</TableCell>
                 <TableCell>₹{price.price}</TableCell>
                 <TableCell>
                   <Button
