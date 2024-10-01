@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { GET, POST, DELETE, PUT } from '@/app/api/api';
 import { formatDate } from '@/app/helperfun/formatDate';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import {
   Table,
   TableBody,
@@ -22,6 +25,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
 function ProductsPrice({ product, onBack }) {
   const [priceHistory, setPriceHistory] = useState([]);
@@ -33,6 +42,7 @@ function ProductsPrice({ product, onBack }) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [priceToDelete, setPriceToDelete] = useState(null);
+  const [date, setDate] = useState(null);
 
   const fetchProductPrice = async () => {
     if (product && slug) {
@@ -64,6 +74,7 @@ function ProductsPrice({ product, onBack }) {
           `/markets/updateMarketProductPrice/${marketProductPriceId}`,
           {
             price: price,
+            date: date ? format(date, 'yyyy-MM-dd') : null,
           }
         );
       }
@@ -72,11 +83,12 @@ function ProductsPrice({ product, onBack }) {
         toast({
           title: marketProductPriceId ? 'Price updated' : 'Price added',
           description: marketProductPriceId
-            ? 'The price has been updated successfully.'
-            : 'New price has been added to the product.',
+            ? 'The price and date have been updated successfully.'
+            : 'New price and date have been added to the product.',
         });
         setIsDialogOpen(false);
         setPrice('');
+        setDate(null);
         setMarketProductPriceId(null);
         fetchProductPrice();
       } else {
@@ -158,6 +170,7 @@ function ProductsPrice({ product, onBack }) {
                 onClick={() => {
                   setMarketProductPriceId(null);
                   setPrice('');
+                  setDate(null);
                 }}
               >
                 Add Price
@@ -169,8 +182,8 @@ function ProductsPrice({ product, onBack }) {
                   {marketProductPriceId ? 'Update Price' : 'Add New Price'}
                 </DialogTitle>
                 <DialogDescription>
-                  Enter the {marketProductPriceId ? 'new' : ''} price for the
-                  product.
+                  Enter the {marketProductPriceId ? 'new' : ''} price and date
+                  for the product.
                 </DialogDescription>
               </DialogHeader>
               <Input
@@ -178,6 +191,28 @@ function ProductsPrice({ product, onBack }) {
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
               />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant='outline'
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !date && 'text-muted-foreground'
+                    )}
+                  >
+                    <CalendarIcon className='mr-2 h-4 w-4' />
+                    {date ? format(date, 'PPP') : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className='w-auto p-0' align='start'>
+                  <Calendar
+                    mode='single'
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
               <DialogFooter>
                 <Button
                   variant='outline'
@@ -213,6 +248,7 @@ function ProductsPrice({ product, onBack }) {
                     onClick={() => {
                       setMarketProductPriceId(price._id);
                       setPrice(price.price.toString());
+                      setDate(new Date(price.date));
                       setIsDialogOpen(true);
                     }}
                     className='mr-2'
